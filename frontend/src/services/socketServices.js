@@ -1,21 +1,23 @@
 import io from 'socket.io-client';
 
-const SOCKET_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+const SOCKET_URL = 'http://localhost:5000';
 
 class SocketService {
     socket = null;
 
     connect() {
-        this.socket = io(SOCKET_URL);
-        
-        this.socket.on('connect', () => {
-            console.log('Connected to socket server');
-        });
+        if (!this.socket) {
+            this.socket = io(SOCKET_URL);
 
-        this.socket.on('disconnect', () => {
-            console.log('Disconnected from socket server');
-        });
+            this.socket.on('connect', () => {
+                console.log('Connected to socket server');
+            });
 
+            this.socket.on('disconnect', () => {
+                console.log('Disconnected from socket server');
+                this.socket = null; 
+            });
+        }
         return this.socket;
     }
 

@@ -1,33 +1,78 @@
-const Message = require('../models/Message');
-const PrivateMessage = require('../models/PrivateMessage');
+const Message = require("../models/Message");
+const PrivateMessage = require("../models/PrivateMessage");
+const cloudinary = require("cloudinary").v2
 
-exports.createCommunityMessage = async (req, res) => {
+exports.uploadImageToCloudinary = async (file, folder, height, quality) => {
   try {
-    const { text, image, userId, username } = req.body;
+      const options = { folder };
 
-    const newMessage = new Message({
-      text,
-      image,
-      userId,
-      username,
-    });
+      if (height) options.height = height;
+      if (quality) options.quality = quality;
 
-    const savedMessage = await newMessage.save();
+      options.resource_type = 'auto';
 
-    // io.emit('newCommunityMessage', savedMessage);
+      console.log('UPLOAD OPTIONS:', options);
 
-    res.status(201).json(savedMessage);
+      if (!file || !file.tempFilePath) {
+          throw new Error('No file provided or invalid file path');
+      }
+
+      return await cloudinary.uploader.upload(file.tempFilePath, options);
   } catch (error) {
-    res.status(500).json({ message: 'Error sending message', error });
+      console.error('Cloudinary Upload Error:', error);
+      throw error; 
   }
 };
 
+exports.createCommunityMessage = async (req, res) => {
+  try {
+      const { text, userId, username, replyTo } = req.body;
+      console.log({ text, userId, username, replyTo });
+
+      let imageUrl = '';
+
+      if (req.files && req.files.image) {
+          const thumbnail = req.files.image;
+
+          console.log('Thumbnail:', thumbnail);
+
+          const uploadedImage = await exports.uploadImageToCloudinary(
+              thumbnail,
+              process.env.FOLDER_NAME
+          );
+
+          imageUrl = uploadedImage.secure_url || '';
+      }
+
+      const newMessage = new Message({
+          text,
+          image: imageUrl,
+          userId,
+          username,
+          replyTo: replyTo || null,
+      });
+
+      // Save message
+      const savedMessage = await newMessage.save();
+
+      res.status(201).json(savedMessage);
+  } catch (error) {
+      console.error('Error creating message:', error);
+      res.status(500).json({ message: 'Error sending message', error: error.message });
+  }
+};
+
+
 exports.getCommunityMessages = async (req, res) => {
   try {
-    const messages = await Message.find().sort({ createdAt: 1 }); 
+    const messages = await Message.find()
+      .sort({ createdAt: 1 })
+      .populate("replyTo")
+      .exec();
+
     res.status(200).json(messages);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching messages', error });
+    res.status(500).json({ message: "Error fetching messages", error });
   }
 };
 
@@ -45,11 +90,11 @@ exports.createPrivateMessage = async (req, res) => {
 
     const savedPrivateMessage = await newPrivateMessage.save();
 
-    io.to(recipientId).emit('newPrivateMessage', savedPrivateMessage);
+    io.to(recipientId).emit("newPrivateMessage", savedPrivateMessage);
 
     res.status(201).json(savedPrivateMessage);
   } catch (error) {
-    res.status(500).json({ message: 'Error sending private message', error });
+    res.status(500).json({ message: "Error sending private message", error });
   }
 };
 
@@ -67,6 +112,6 @@ exports.getPrivateMessages = async (req, res) => {
 
     res.status(200).json(messages);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching private messages', error });
+    res.status(500).json({ message: "Error fetching private messages", error });
   }
 };
