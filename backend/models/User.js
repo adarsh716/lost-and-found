@@ -7,11 +7,15 @@ const userSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
   otp: String,
   otpExpiration: Date,
-  address: { type: String }, 
-  phoneNumber: { type: String }, 
+  address: { type: String },
+  phoneNumber: { type: String },
   usernameLastUpdated: { type: Date, default: null },
-  friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] 
+  friends: [
+    {
+      friendId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      friendName: { type: String}
+    }
+  ]
 });
 
 module.exports = mongoose.model('User', userSchema);
- 

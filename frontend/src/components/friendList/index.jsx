@@ -9,38 +9,28 @@ import {
   Typography,
   Divider,
   Tooltip,
-  Button,
   useTheme
 } from '@mui/material';
-import { Search, Close } from '@mui/icons-material';
+import { Search, Close, Block } from '@mui/icons-material'; 
+import { useAuth } from '../../context/AuthContext'; 
 
 const FriendListPage = () => {
   const theme = useTheme();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  const [friends, setFriends] = useState([
-    {
-      id: 1,
-      name: 'John Carter',
-      avatar: 'https://source.unsplash.com/random/800x600?face1'
-    },
-    {
-      id: 2,
-      name: 'Emma Wilson',
-      avatar: 'https://source.unsplash.com/random/800x600?face2'
-    },
-    {
-      id: 3,
-      name: 'Michael Smith',
-      avatar: 'https://source.unsplash.com/random/800x600?face3'
-    },
-  ]);
+  
+  const friends = user?.friends || [];
 
-  const handleRemoveFriend = (id) => {
-    setFriends(friends.filter(friend => friend.id !== id));
+  const handleRemoveFriend = (friendId) => {
+    console.log('Remove friend with ID:', friendId);
+  };
+
+  const handleBlockFriend = (friendId) => {
+    console.log('Block friend with ID:', friendId);
   };
 
   const filteredFriends = friends.filter(friend =>
-    friend.name.toLowerCase().includes(searchQuery.toLowerCase())
+    friend.friendName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -48,7 +38,7 @@ const FriendListPage = () => {
       maxWidth="md"
       sx={{
         py: 4,
-        height: '91.5vh',
+        height: '91.5dvh',
         bgcolor: 'background.default',
         overflow: 'auto',
         '::-webkit-scrollbar': { display: 'none' }
@@ -91,14 +81,14 @@ const FriendListPage = () => {
         bgcolor: 'background.paper',
         borderRadius: 3,
         boxShadow: theme.shadows[0],
-        mt:0,
+        mt: 0,
         '&:hover': {
           boxShadow: theme.shadows[0]
         },
         transition: 'all 0.3s ease'
       }}>
         {filteredFriends.map((friend, index) => (
-          <Box key={friend.id}>
+          <Box key={friend.friendId}>
             <Box 
               sx={{
                 display: 'flex',
@@ -120,31 +110,53 @@ const FriendListPage = () => {
                     height: 48,
                     border: '2px solid',
                     borderColor: 'background.default',
-                    boxShadow: theme.shadows[2]
+                    boxShadow: theme.shadows[2],
+                    bgcolor: 'primary.main',
+                    color: 'primary.contrastText'
                   }}
-                  src={friend.avatar}
-                />
+                >
+                  {friend.friendName[0]}
+                </Avatar>
                 <Typography variant="subtitle1" fontWeight={600} color="text.primary">
-                  {friend.name}
+                  {friend.friendName}
                 </Typography>
               </Box>
 
-              <Tooltip title="Remove Friend">
-                <IconButton
-                  size="small"
-                  onClick={() => handleRemoveFriend(friend.id)}
-                  sx={{
-                    color: 'white',
-                    bgcolor:'error.light',
-                    '&:hover': {
-                      color: 'error.main',
-                      bgcolor: 'error.light'
-                    }
-                  }}
-                >
-                  <Close fontSize="small" />
-                </IconButton>
-              </Tooltip>
+              <Box display="flex" gap={1}>
+                <Tooltip title="Block Friend">
+                  <IconButton
+                    size="small"
+                    onClick={() => handleBlockFriend(friend.friendId)}
+                    sx={{
+                      color: 'white',
+                      bgcolor: 'warning.light',
+                      '&:hover': {
+                        color: 'warning.main',
+                        bgcolor: 'warning.light'
+                      }
+                    }}
+                  >
+                    <Block fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+
+                <Tooltip title="Remove Friend">
+                  <IconButton
+                    size="small"
+                    onClick={() => handleRemoveFriend(friend.friendId)}
+                    sx={{
+                      color: 'white',
+                      bgcolor: 'error.light',
+                      '&:hover': {
+                        color: 'error.main',
+                        bgcolor: 'error.light'
+                      }
+                    }}
+                  >
+                    <Close fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </Box>
             {index < filteredFriends.length - 1 && (
               <Divider sx={{ mx: 2, borderColor: 'divider' }} />

@@ -67,37 +67,89 @@ export const changePassword = async (userId, currentPassword, newPassword) => {
 
 export const getCommunityMessages = async () => {
   try {
-      const response = await apiClient.get('/api/messages/community');
-      return response.data;
+    const response = await apiClient.get('/api/messages/community');
+    return response.data;
   } catch (error) {
-      throw error.response ? error.response.data : error.message;
+    throw error.response ? error.response.data : error.message;
   }
 };
 
 export const sendCommunityMessage = async (messageData) => {
   try {
-      const response = await apiClient.post('/api/messages/community', messageData);
-      return response.data;
+    const response = await apiClient.post('/api/messages/community', messageData);
+    return response.data;
   } catch (error) {
-      throw error.response ? error.response.data : error.message;
+    throw error.response ? error.response.data : error.message;
   }
 };
 
 export const getPrivateMessages = async (recipientId) => {
   try {
-      const response = await apiClient.get(`/api/messages/private/${recipientId}`);
-      return response.data;
+    const response = await apiClient.get(`/api/messages/private/${recipientId}`);
+    return response.data;
   } catch (error) {
-      throw error.response ? error.response.data : error.message;
+    throw error.response ? error.response.data : error.message;
   }
 };
 
 export const sendPrivateMessage = async (messageData) => {
   try {
-      const response = await apiClient.post('/api/messages/private', messageData);
-      return response.data;
+    const response = await apiClient.post('/api/messages/private', messageData);
+    return response.data;
   } catch (error) {
-      throw error.response ? error.response.data : error.message;
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const getUserDataPublic = async (userId) => {
+  try {
+    const response = await apiClient.get(`/api/profile/public`, { params: { userId } });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+
+export const sendFriendRequest = async (receiverId, senderId, message) => {
+  try {
+    const response = await apiClient.post('/api/friends/send', { receiverId, senderId, message });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const getFriendRequests = async (userId) => {
+  try {
+    const response = await apiClient.get(`/api/friends/requests`, { params: { userId } });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const acceptFriendRequest = async (requestId, userId) => {
+  try {
+    const response = await apiClient.put('/api/friends/accept', {
+      requestId,
+      userId
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const deleteFriendRequest = async (requestId, userId) => {
+  try {
+    const response = await apiClient.put('/api/friends/decline', {
+      requestId,
+      userId
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
   }
 };
 

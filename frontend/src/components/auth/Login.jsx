@@ -29,6 +29,9 @@ const Login = () => {
         userId: responseData.userId,        
         fullName: responseData.fullName,
         email: responseData.email,
+        phone: responseData.phoneNumber || 'No phone number provided',
+        address: responseData.address || 'No address provided',
+        friends: responseData.friends || [],
       });
       navigate("/")
     } catch (error) {

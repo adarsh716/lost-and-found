@@ -97,6 +97,9 @@ exports.login = async (req, res) => {
       userId: user._id,        
       fullName: user.fullName,  
       email: user.email,   
+      phone: user.phoneNumber ,
+      address: user.address ,
+      friends: user.friends || [],
     });
   } catch (err) {
     res.status(500).json({ msg: 'Error logging in', error: err.message });

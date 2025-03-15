@@ -10,14 +10,16 @@ export const AuthProvider = ({ children }) => {
     return storedUser
       ? JSON.parse(storedUser)
       : {
-          userId: null,
-          fullName: '',
-          email: '',
-          phone: '',
-          address: '',
-          friends: [],
-        };
+        userId: null,
+        fullName: '',
+        email: '',
+        phone: '',
+        address: '',
+        friends: [],
+      };
   });
+
+  const [friendRequestStatus, setFriendRequestStatus] = useState('none');
 
   useEffect(() => {
     if (user.userId) {
@@ -34,7 +36,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, updateUserData }}>
+    <AuthContext.Provider value={{
+      user,setUser, login, updateUserData, friendRequestStatus,
+      setFriendRequestStatus,
+    }}>
       {children}
     </AuthContext.Provider>
   );

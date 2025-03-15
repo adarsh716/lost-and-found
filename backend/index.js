@@ -3,6 +3,7 @@ const express = require('express');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes')
+const friendRoutes = require('./routes/friendRoutes')
 const bodyParser = require('body-parser');
 const cors = require('cors');  
 const http = require('http');
@@ -23,6 +24,7 @@ connectDB();
 app.use('/api/auth', authRoutes);
 app.use('/api/profile',profileRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/friends', friendRoutes);
 
 io.on('connection', (socket) => {
   console.log('New user connected');
