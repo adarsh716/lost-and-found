@@ -13,20 +13,42 @@ import {
 } from '@mui/material';
 import { Search, Close, Block } from '@mui/icons-material'; 
 import { useAuth } from '../../context/AuthContext'; 
+import { removeFriend, blockFriend } from '../../api/auth'; 
 
 const FriendListPage = () => {
   const theme = useTheme();
-  const { user } = useAuth();
+  const { user, setUser } = useAuth(); 
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(false); 
   
   const friends = user?.friends || [];
 
-  const handleRemoveFriend = (friendId) => {
-    console.log('Remove friend with ID:', friendId);
+  console.log(user.userId)
+
+  const handleRemoveFriend = async (friendId) => {
+    try {
+      setLoading(true);
+      await removeFriend(user.userId, friendId);  
+      const updatedFriends = friends.filter(friend => friend.friendId !== friendId);
+      setUser((prev) => ({ ...prev, friends: updatedFriends }));
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      console.error('Error removing friend:', error);
+    }
   };
 
-  const handleBlockFriend = (friendId) => {
-    console.log('Block friend with ID:', friendId);
+  const handleBlockFriend = async (friendId) => {
+    try {
+      setLoading(true);
+      await blockFriend(user.userId, friendId);  
+      const updatedFriends = friends.filter(friend => friend.friendId !== friendId);
+      setUser((prev) => ({ ...prev, friends: updatedFriends }));
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      console.error('Error blocking friend:', error);
+    }
   };
 
   const filteredFriends = friends.filter(friend =>
@@ -135,6 +157,7 @@ const FriendListPage = () => {
                         bgcolor: 'warning.light'
                       }
                     }}
+                    disabled={loading}  
                   >
                     <Block fontSize="small" />
                   </IconButton>
@@ -152,6 +175,7 @@ const FriendListPage = () => {
                         bgcolor: 'error.light'
                       }
                     }}
+                    disabled={loading}  
                   >
                     <Close fontSize="small" />
                   </IconButton>

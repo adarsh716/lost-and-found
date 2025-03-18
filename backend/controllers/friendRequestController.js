@@ -135,3 +135,67 @@ exports.declineFriendRequest = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+exports.removeFriend = async (req, res) => {
+  try {
+    const { userId, friendId } = req.body;
+
+    console.log(userId,friendId)
+
+    const user = await User.findById(userId);
+    const friend = await User.findById(friendId);
+
+    if (!user || !friend) {
+      return res.status(404).json({ message: 'User or friend not found' });
+    }
+
+    await User.findByIdAndUpdate(userId, {
+      $pull: { friends: { friendId } },
+    });
+
+    // Also remove user from friend's friends list
+    await User.findByIdAndUpdate(friendId, {
+      $pull: { friends: { friendId: userId } },
+    });
+
+    res.status(200).json({ message: 'Friend removed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+exports.blockUser = async (req, res) => {
+  try {
+    const { userId, blockedUserId } = req.body;
+
+    const user = await User.findById(userId);
+    const blockedUser = await User.findById(blockedUserId);
+
+    if (!user || !blockedUser) {
+      return res.status(404).json({ message: 'User or blocked user not found' });
+    }
+
+    // Check if the user is already blocked
+    const isAlreadyBlocked = user.blockedUsers.some(
+      (blocked) => blocked.blockedUserId.toString() === blockedUserId
+    );
+    if (isAlreadyBlocked) {
+      return res.status(400).json({ message: 'User is already blocked' });
+    }
+
+    // Add the user to blockedUsers array
+    await User.findByIdAndUpdate(userId, {
+      $addToSet: {
+        blockedUsers: {
+          blockedUserId,
+          blockedUserName: blockedUser.fullName,
+        },
+      },
+      $pull: { friends: { friendId: userId } },
+    });
+
+    res.status(200).json({ message: 'User blocked successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};

@@ -153,3 +153,28 @@ export const deleteFriendRequest = async (requestId, userId) => {
   }
 };
 
+export const removeFriend = async ( userId, friendId) => {
+  try {
+    const response = await apiClient.post('/api/friends/remove', {
+      userId,
+      friendId
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const blockFriend = async (userId, blockedUserId) => {
+  try {
+    const response = await apiClient.post('/api/friends/block', {
+      userId,
+      blockedUserId
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+

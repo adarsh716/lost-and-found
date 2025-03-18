@@ -100,6 +100,7 @@ exports.login = async (req, res) => {
       phone: user.phoneNumber ,
       address: user.address ,
       friends: user.friends || [],
+      blockedUsers : user.blockedUsers || []
     });
   } catch (err) {
     res.status(500).json({ msg: 'Error logging in', error: err.message });

@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
         phone: '',
         address: '',
         friends: [],
+        blockedUsers: []
       };
   });
 

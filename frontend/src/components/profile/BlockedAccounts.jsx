@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Container,
   Paper,
@@ -11,6 +11,7 @@ import {
   createTheme
 } from '@mui/material';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
+import { useAuth } from '../../context/AuthContext'; 
 
 const theme = createTheme({
   palette: {
@@ -51,14 +52,16 @@ const theme = createTheme({
 });
 
 const BlockedAccountsPage = () => {
-  const [blockedUsers, setBlockedUsers] = useState([
-    { id: 1, username: 'johndoe24' },
-    { id: 2, username: 'techqueen' },
-    { id: 3, username: 'designmaster' },
-  ]);
+  const { user, setUser } = useAuth(); 
+  const blockedUsers = user?.blockedUsers || [];
+  console.log(user.blockedUsers)
 
   const handleUnblock = (userId) => {
-    setBlockedUsers(blockedUsers.filter(user => user.id !== userId));
+    const updatedBlockedUsers = blockedUsers.filter(user => user.userId !== userId);
+    setUser((prev) => ({
+      ...prev,
+      blockedUsers: updatedBlockedUsers,
+    }));
   };
 
   return (
@@ -105,10 +108,10 @@ const BlockedAccountsPage = () => {
                       borderRadius: '50%',
                       fontSize: '1rem'
                     }}>
-                      {user.username[0].toUpperCase()}
+                      {user.blockedUserName?.[0]?.toUpperCase() || 'U'}
                     </Avatar>
                     <Typography variant="body1">
-                      {user.username}
+                      {user.blockedUserName || 'Unknown User'}
                     </Typography>
                   </Box>
                   <Button
@@ -119,11 +122,11 @@ const BlockedAccountsPage = () => {
                     sx={{
                       borderRadius: 3,
                       borderWidth: 2,
-                      color:'black',
+                      color: 'black',
                       '&:hover': {
                         borderWidth: 2,
                         backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                      color:'black'
+                        color: 'black',
                       }
                     }}
                   >
