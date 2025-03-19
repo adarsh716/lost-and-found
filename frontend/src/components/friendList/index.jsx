@@ -22,7 +22,7 @@ const FriendListPage = () => {
   const [loading, setLoading] = useState(false); 
   
   const friends = user?.friends || [];
-
+console.log(friends)
   console.log(user.userId)
 
   const handleRemoveFriend = async (friendId) => {
@@ -52,7 +52,7 @@ const FriendListPage = () => {
   };
 
   const filteredFriends = friends.filter(friend =>
-    friend.friendName.toLowerCase().includes(searchQuery.toLowerCase())
+    friend?.friendName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -137,10 +137,10 @@ const FriendListPage = () => {
                     color: 'primary.contrastText'
                   }}
                 >
-                  {friend.friendName[0]}
+                  {friend?.friendName[0]}
                 </Avatar>
                 <Typography variant="subtitle1" fontWeight={600} color="text.primary">
-                  {friend.friendName}
+                  {friend?.friendName}
                 </Typography>
               </Box>
 

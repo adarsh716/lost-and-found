@@ -26,7 +26,7 @@ import {
 } from '@mui/icons-material';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
-import { getFriendRequests, acceptFriendRequest,deleteFriendRequest } from '../../api/auth';
+import { getFriendRequests, acceptFriendRequest, deleteFriendRequest } from '../../api/auth';
 import { useAuth } from '../../context/AuthContext';
 import { styled } from '@mui/system';
 
@@ -49,7 +49,7 @@ const StyledIconButton = styled(IconButton)(({ theme, color }) => ({
 }));
 
 const MessageRequestsPage = () => {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [requests, setRequests] = useState([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -76,7 +76,7 @@ const MessageRequestsPage = () => {
   }, [userId]);
 
   const handleAccept = async (requestId) => {
-    let acceptedRequest; 
+    let acceptedRequest;
 
     try {
       acceptedRequest = requests.find(req => req._id === requestId);
@@ -90,20 +90,29 @@ const MessageRequestsPage = () => {
 
       await acceptFriendRequest(requestId, userId);
 
+      const newFriend = {
+        friendId: acceptedRequest.sender._id,
+        friendName: acceptedRequest.sender.fullName
+      };
+
+      const updatedUser = {
+        ...user,
+        friends: [...(user.friends || []), newFriend]
+      };
+      setUser(updatedUser);
+
       setSnackbarMessage(`You are now friends with ${acceptedRequest.sender.fullName}`);
       setSnackbarOpen(true);
     } catch (error) {
       console.error('Error accepting friend request:', error);
-
       if (acceptedRequest) {
         setRequests(prev => [...prev, acceptedRequest]);
       }
     }
   };
 
-
-  const handleDecline = async(requestId) => {
-    let declineRequest; 
+  const handleDecline = async (requestId) => {
+    let declineRequest;
 
     try {
       declineRequest = requests.find(req => req._id === requestId);
