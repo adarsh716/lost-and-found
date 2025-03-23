@@ -33,28 +33,26 @@ const CommunityChat = () => {
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
   const [replyToMessage, setReplyToMessage] = useState(null);
-  const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
+  const [isUserScrolledUp, setIsUserScrolledUp] = useState(false); 
 
   const { user } = useAuth();
 
-  console.log(user)
+  const currentUser = JSON.parse(localStorage.getItem("user")) || {};
 
+  // Update these useEffect hooks
+useEffect(() => {
+  initializeChat();
+  return () => {
+    socketServices.disconnect();
+  };
+}, []); // Run only once on mount
 
-  useEffect(() => {
-    initializeChat();
+useEffect(() => {
+  // Only auto-scroll if user is at bottom
+  if (!isUserScrolledUp) {
     scrollToBottom();
-    return () => {
-      socketServices.disconnect();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!isUserScrolledUp) {
-      scrollToBottom();
-    }
-    // initializeChat();
-  }, [messages]);
-
+  }
+}, [messages]);
   const initializeChat = async () => {
     try {
       socketServices.connect();
@@ -89,7 +87,7 @@ const CommunityChat = () => {
       const messageData = {
         text: message.trim(),
         userId: user.userId,
-        username: user.fullName,
+        username: user.fullName, 
         timestamp: new Date().toISOString(),
       };
       const sentMessage = await sendCommunityMessage(messageData);
@@ -109,12 +107,10 @@ const CommunityChat = () => {
   const handleScroll = () => {
     const list = messagesEndRef.current?.parentElement;
     if (list) {
-      const buffer = 50;
-      const isAtBottom = list.scrollHeight - (list.scrollTop + list.clientHeight) < buffer;
-      setIsUserScrolledUp(!isAtBottom);
+      const isScrolledUp = list.scrollTop + list.clientHeight < list.scrollHeight;
+      setIsUserScrolledUp(isScrolledUp);
     }
   };
-
 
   useEffect(() => {
     const list = messagesEndRef.current?.parentElement;
@@ -131,11 +127,11 @@ const CommunityChat = () => {
     try {
       const base64 = await convertToBase64(file);
       console.log(base64);
-      if (base64) {
+      if(base64){
         const messageData = {
           image: base64,
           userId: user.userId,
-          username: user.fullName,
+          username: user.fullName, 
         };
         console.log("hello");
         const sentMessage = await sendCommunityMessage(messageData);
@@ -283,81 +279,81 @@ const CommunityChat = () => {
         </Box>
 
         {filteredMessages.map((msg) => {
-          const isCurrentUser = msg.userId === user.userId;
+  const isCurrentUser = msg.userId === user.userId;
 
-          return (
-            <StyledMessage
-              key={msg._id || msg.id}
-              iscurrentuser={isCurrentUser ? 1 : 0}
-              onClick={() => handleNavigateRoute(msg.userId)}
-            >
-              <MessageBubble iscurrentuser={isCurrentUser ? 1 : 0}>
-                {/* Show username only for messages from other users */}
-                {!isCurrentUser && msg.username && (
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ fontWeight: 600, mb: 0.5 }}
-                    onClick={() => handleNavigateRoute(msg.userId)}
-                  >
-                    {msg.username}
-                  </Typography>
-                )}
+  return (
+    <StyledMessage
+      key={msg._id || msg.id}
+      iscurrentuser={isCurrentUser ? 1 : 0}
+      onClick={() => handleNavigateRoute(msg.userId)}
+    >
+      <MessageBubble iscurrentuser={isCurrentUser ? 1 : 0}>
+        {/* Show username only for messages from other users */}
+        {!isCurrentUser && msg.username && (
+          <Typography
+            variant="subtitle2"
+            sx={{ fontWeight: 600, mb: 0.5 }}
+            onClick={() => handleNavigateRoute(msg.userId)}
+          >
+            {msg.username}
+          </Typography>
+        )}
 
-                {/* Handle text message */}
-                {msg.text && (
-                  <Typography
-                    variant="body1"
-                    onClick={() => setReplyToMessage(msg)}
-                    sx={{ whiteSpace: "pre-line" }} // Ensures line breaks are maintained
-                  >
-                    {msg.text}
-                  </Typography>
-                )}
+        {/* Handle text message */}
+        {msg.text && (
+          <Typography
+            variant="body1"
+            onClick={() => setReplyToMessage(msg)}
+            sx={{ whiteSpace: "pre-line" }} // Ensures line breaks are maintained
+          >
+            {msg.text}
+          </Typography>
+        )}
 
-                {/* Handle image message */}
-                {msg.image && (
-                  <img
-                    src={msg.image}
-                    alt="Uploaded content"
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: "40vh",
-                      borderRadius: "12px",
-                      marginTop: msg.text ? "8px" : 0,
-                      cursor: "pointer",
-                    }}
-                    onClick={() => handleImageClick(msg.image)}
-                  />
-                )}
+        {/* Handle image message */}
+        {msg.image && (
+          <img
+            src={msg.image}
+            alt="Uploaded content"
+            style={{
+              maxWidth: "100%",
+              maxHeight: "40vh",
+              borderRadius: "12px",
+              marginTop: msg.text ? "8px" : 0,
+              cursor: "pointer",
+            }}
+            onClick={() => handleImageClick(msg.image)}
+          />
+        )}
 
-                {/* Timestamp */}
-                {msg.timestamp && (
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      display: "block",
-                      textAlign: "right",
-                      mt: 0.5,
-                      color: isCurrentUser
-                        ? "rgba(255,255,255,0.7)"
-                        : "text.secondary",
-                    }}
-                  >
-                    {new Date(msg.timestamp).toLocaleTimeString("en-US", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </Typography>
-                )}
-              </MessageBubble>
-            </StyledMessage>
-          );
-        })}
+        {/* Timestamp */}
+        {msg.timestamp && (
+          <Typography
+            variant="caption"
+            sx={{
+              display: "block",
+              textAlign: "right",
+              mt: 0.5,
+              color: isCurrentUser
+                ? "rgba(255,255,255,0.7)"
+                : "text.secondary",
+            }}
+          >
+            {new Date(msg.timestamp).toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Typography>
+        )}
+      </MessageBubble>
+    </StyledMessage>
+  );
+})}
 
 
         <div ref={messagesEndRef} />
       </List>
-
+      
       {replyToMessage && (
         <div style={{ background: "#f1f1f1", padding: "5px", marginBottom: "5px" }}>
           Replying to: {replyToMessage.text}{" "}

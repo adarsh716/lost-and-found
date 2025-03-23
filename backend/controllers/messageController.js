@@ -1,64 +1,25 @@
 const Message = require("../models/Message");
 const PrivateMessage = require("../models/PrivateMessage");
-const cloudinary = require("cloudinary").v2
 
-exports.uploadImageToCloudinary = async (file, folder, height, quality) => {
-  try {
-      const options = { folder };
-
-      if (height) options.height = height;
-      if (quality) options.quality = quality;
-
-      options.resource_type = 'auto';
-
-      console.log('UPLOAD OPTIONS:', options);
-
-      if (!file || !file.tempFilePath) {
-          throw new Error('No file provided or invalid file path');
-      }
-
-      return await cloudinary.uploader.upload(file.tempFilePath, options);
-  } catch (error) {
-      console.error('Cloudinary Upload Error:', error);
-      throw error; 
-  }
-};
 
 exports.createCommunityMessage = async (req, res) => {
   try {
-      const { text, userId, username, replyTo } = req.body;
-      console.log({ text, userId, username, replyTo });
+    const { text, image, userId, username } = req.body;
 
-      let imageUrl = '';
+    const newMessage = new Message({
+      text,
+      image,
+      userId,
+      username,
+    });
 
-      if (req.files && req.files.image) {
-          const thumbnail = req.files.image;
+    const savedMessage = await newMessage.save();
 
-          console.log('Thumbnail:', thumbnail);
+    io.emit('newCommunityMessage', savedMessage);
 
-          const uploadedImage = await exports.uploadImageToCloudinary(
-              thumbnail,
-              process.env.FOLDER_NAME
-          );
-
-          imageUrl = uploadedImage.secure_url || '';
-      }
-
-      const newMessage = new Message({
-          text,
-          image: imageUrl,
-          userId,
-          username,
-          replyTo: replyTo || null,
-      });
-
-      // Save message
-      const savedMessage = await newMessage.save();
-
-      res.status(201).json(savedMessage);
+    res.status(201).json(savedMessage);
   } catch (error) {
-      console.error('Error creating message:', error);
-      res.status(500).json({ message: 'Error sending message', error: error.message });
+    res.status(500).json({ message: 'Error sending message', error });
   }
 };
 
