@@ -46,6 +46,7 @@ const CommunityChat = () => {
 
     useEffect(() => {
         scrollToBottom();
+        initializeChat();
       }, [messages]);
 
     const initializeChat = async () => {
