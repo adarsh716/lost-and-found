@@ -74,11 +74,25 @@ export const getCommunityMessages = async () => {
   }
 };
 
-export const sendCommunityMessage = async (messageData) => {
+export const sendCommunityMessage = async (formData) => {
   try {
-    const response = await apiClient.post('/api/messages/community', messageData);
+    console.log('Sending data:', {
+      text: formData.get('text'),
+      userId: formData.get('userId'),
+      username: formData.get('username'),
+      image: formData.get('image') ? 'File present' : 'No file' 
+    });
+
+    const response = await apiClient.post('/api/messages/community', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    console.log('Response data:', response.data);
     return response.data;
   } catch (error) {
+    console.error('Error in sendCommunityMessage:', error);
     throw error.response ? error.response.data : error.message;
   }
 };
