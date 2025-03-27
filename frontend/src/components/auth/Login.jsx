@@ -32,6 +32,7 @@ const Login = () => {
         phone: responseData.phoneNumber || 'No phone number provided',
         address: responseData.address || 'No address provided',
         friends: responseData.friends || [],
+        blockedUsers: responseData.blockedUsers || []
       });
       navigate("/")
     } catch (error) {

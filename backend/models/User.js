@@ -13,9 +13,16 @@ const userSchema = new mongoose.Schema({
   friends: [
     {
       friendId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-      friendName: { type: String}
+      friendName: { type: String }
+    }
+  ],
+  blockedUsers: [
+    {
+      blockedUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      blockedUserName: { type: String }
     }
   ]
 });
 
 module.exports = mongoose.model('User', userSchema);
+
