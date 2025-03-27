@@ -97,14 +97,15 @@ export const sendCommunityMessage = async (formData) => {
   }
 };
 
-export const getPrivateMessages = async (recipientId) => {
+export const getPrivateMessages = async (recipientId,senderId) => {
   try {
-    const response = await apiClient.get(`/api/messages/private/${recipientId}`);
+    const response = await apiClient.get(`/api/messages/private`,{senderId},{ params: { recipientId }});
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : error.message;
   }
 };
+
 
 export const sendPrivateMessage = async (messageData) => {
   try {

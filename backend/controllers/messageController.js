@@ -12,8 +12,8 @@ exports.createCommunityMessage = async (req, res) => {
       console.log("File uploaded:", file);
 
       const uploadResult = await cloudinary.uploader.upload(file.tempFilePath, {
-        public_id: `message_${Date.now()}`,  // Optional: you can set a custom public ID for the image
-        folder: "community_messages",        // Optional: upload to a specific folder in Cloudinary
+        public_id: `message_${Date.now()}`, 
+        folder: "community_messages",        
       }).catch((error) => {
         console.log("Cloudinary Upload Error:", error);
         throw new Error("Failed to upload image to Cloudinary");
@@ -39,7 +39,6 @@ exports.createCommunityMessage = async (req, res) => {
       console.log("Auto-Cropped Image URL:", autoCroppedUrl);
     }
 
-    // Create a new message with the image URL (or no image if none was uploaded)
     const newMessage = new Message({
       text,
       image: imageUrl, 

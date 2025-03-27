@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Avatar,
   Box,
@@ -9,49 +9,53 @@ import {
   Typography,
   Divider,
   Tooltip,
-  useTheme
-} from '@mui/material';
-import { Search, Close, Block } from '@mui/icons-material'; 
-import { useAuth } from '../../context/AuthContext'; 
-import { removeFriend, blockFriend } from '../../api/auth'; 
+  useTheme,
+} from "@mui/material";
+import { Search, Close, Block } from "@mui/icons-material";
+import { useAuth } from "../../context/AuthContext";
+import { removeFriend, blockFriend } from "../../api/auth";
 
 const FriendListPage = () => {
   const theme = useTheme();
-  const { user, setUser } = useAuth(); 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(false); 
-  
+  const { user, setUser } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const friends = user?.friends || [];
-console.log(friends)
-  console.log(user.userId)
+  console.log(friends);
+  console.log(user.userId);
 
   const handleRemoveFriend = async (friendId) => {
     try {
       setLoading(true);
-      await removeFriend(user.userId, friendId);  
-      const updatedFriends = friends.filter(friend => friend.friendId !== friendId);
+      await removeFriend(user.userId, friendId);
+      const updatedFriends = friends.filter(
+        (friend) => friend.friendId !== friendId
+      );
       setUser((prev) => ({ ...prev, friends: updatedFriends }));
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      console.error('Error removing friend:', error);
+      console.error("Error removing friend:", error);
     }
   };
 
   const handleBlockFriend = async (friendId) => {
     try {
       setLoading(true);
-      await blockFriend(user.userId, friendId);  
-      const updatedFriends = friends.filter(friend => friend.friendId !== friendId);
+      await blockFriend(user.userId, friendId);
+      const updatedFriends = friends.filter(
+        (friend) => friend.friendId !== friendId
+      );
       setUser((prev) => ({ ...prev, friends: updatedFriends }));
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      console.error('Error blocking friend:', error);
+      console.error("Error blocking friend:", error);
     }
   };
 
-  const filteredFriends = friends.filter(friend =>
+  const filteredFriends = friends.filter((friend) =>
     friend?.friendName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -60,16 +64,16 @@ console.log(friends)
       maxWidth="md"
       sx={{
         py: 4,
-        height: '91.5dvh',
-        bgcolor: 'background.default',
-        overflow: 'auto',
-        '::-webkit-scrollbar': { display: 'none' }
+        height: "91.5dvh",
+        bgcolor: "background.default",
+        overflow: "auto",
+        "::-webkit-scrollbar": { display: "none" },
       }}
     >
-      <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Box sx={{ mb: 4, display: "flex", alignItems: "center", gap: 2 }}>
         <Typography variant="h5" component="h1" fontWeight={700}>
           Friend List
-          <Typography component="span" sx={{ ml: 1, color: 'text.secondary' }}>
+          <Typography component="span" sx={{ ml: 1, color: "text.secondary" }}>
             ({friends.length})
           </Typography>
         </Typography>
@@ -82,46 +86,48 @@ console.log(friends)
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         InputProps={{
-          startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />,
+          startAdornment: <Search sx={{ mr: 1, color: "text.secondary" }} />,
           sx: {
             borderRadius: 3,
-            bgcolor: 'background.paper',
-            transition: 'all 0.3s ease',
-            '& fieldset': { borderColor: 'divider' },
-            '&:hover fieldset': { borderColor: 'primary.light' },
-            '&.Mui-focused fieldset': { borderColor: 'primary.main' }
-          }
+            bgcolor: "background.paper",
+            transition: "all 0.3s ease",
+            "& fieldset": { borderColor: "divider" },
+            "&:hover fieldset": { borderColor: "primary.light" },
+            "&.Mui-focused fieldset": { borderColor: "primary.main" },
+          },
         }}
         sx={{ mb: 2 }}
       />
 
-      <List sx={{
-        width: '100%',
-        overflow: 'auto',
-        height: 'calc(100vh - 200px)',
-        '::-webkit-scrollbar': { display: 'none' },
-        bgcolor: 'background.paper',
-        borderRadius: 3,
-        boxShadow: theme.shadows[0],
-        mt: 0,
-        '&:hover': {
-          boxShadow: theme.shadows[0]
-        },
-        transition: 'all 0.3s ease'
-      }}>
+      <List
+        sx={{
+          width: "100%",
+          overflow: "auto",
+          height: "calc(100vh - 200px)",
+          "::-webkit-scrollbar": { display: "none" },
+          bgcolor: "background.paper",
+          borderRadius: 3,
+          boxShadow: theme.shadows[0],
+          mt: 0,
+          "&:hover": {
+            boxShadow: theme.shadows[0],
+          },
+          transition: "all 0.3s ease",
+        }}
+      >
         {filteredFriends.map((friend, index) => (
           <Box key={friend.friendId}>
-            <Box 
+            <Box
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
                 p: 2,
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  bgcolor: 'action.hover',
-                  transform: 'translateX(4px)'
-                }
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  bgcolor: "action.hover",
+                  transform: "translateX(4px)",
+                },
               }}
             >
               <Box display="flex" alignItems="center">
@@ -130,16 +136,20 @@ console.log(friends)
                     mr: 2,
                     width: 48,
                     height: 48,
-                    border: '2px solid',
-                    borderColor: 'background.default',
+                    border: "2px solid",
+                    borderColor: "background.default",
                     boxShadow: theme.shadows[2],
-                    bgcolor: 'primary.main',
-                    color: 'primary.contrastText'
+                    bgcolor: "primary.main",
+                    color: "primary.contrastText",
                   }}
                 >
                   {friend?.friendName[0]}
                 </Avatar>
-                <Typography variant="subtitle1" fontWeight={600} color="text.primary">
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={600}
+                  color="text.primary"
+                >
                   {friend?.friendName}
                 </Typography>
               </Box>
@@ -150,14 +160,14 @@ console.log(friends)
                     size="small"
                     onClick={() => handleBlockFriend(friend.friendId)}
                     sx={{
-                      color: 'white',
-                      bgcolor: 'warning.light',
-                      '&:hover': {
-                        color: 'warning.main',
-                        bgcolor: 'warning.light'
-                      }
+                      color: "white",
+                      bgcolor: "warning.light",
+                      "&:hover": {
+                        color: "warning.main",
+                        bgcolor: "warning.light",
+                      },
                     }}
-                    disabled={loading}  
+                    disabled={loading}
                   >
                     <Block fontSize="small" />
                   </IconButton>
@@ -168,14 +178,14 @@ console.log(friends)
                     size="small"
                     onClick={() => handleRemoveFriend(friend.friendId)}
                     sx={{
-                      color: 'white',
-                      bgcolor: 'error.light',
-                      '&:hover': {
-                        color: 'error.main',
-                        bgcolor: 'error.light'
-                      }
+                      color: "white",
+                      bgcolor: "error.light",
+                      "&:hover": {
+                        color: "error.main",
+                        bgcolor: "error.light",
+                      },
                     }}
-                    disabled={loading}  
+                    disabled={loading}
                   >
                     <Close fontSize="small" />
                   </IconButton>
@@ -183,7 +193,7 @@ console.log(friends)
               </Box>
             </Box>
             {index < filteredFriends.length - 1 && (
-              <Divider sx={{ mx: 2, borderColor: 'divider' }} />
+              <Divider sx={{ mx: 2, borderColor: "divider" }} />
             )}
           </Box>
         ))}
