@@ -97,25 +97,40 @@ export const sendCommunityMessage = async (formData) => {
   }
 };
 
-export const getPrivateMessages = async (recipientId,senderId) => {
-  try {
-    const response = await apiClient.get(`/api/messages/private`,{senderId},{ params: { recipientId }});
-    return response.data;
-  } catch (error) {
-    throw error.response ? error.response.data : error.message;
-  }
+export const getPrivateMessages = async (recipientId, senderId) => {
+  const response = await apiClient.get(`/api/messages/private`, { 
+    params: { 
+      recipientId,
+      senderId 
+    }
+  });
+  console.log(response.data)
+  return response.data;
 };
 
 
-export const sendPrivateMessage = async (messageData) => {
+export const sendPrivateMessage = async (formData) => {
   try {
-    const response = await apiClient.post('/api/messages/private', messageData);
+    console.log('Sending private message data:', {
+      text: formData.get('text'),
+      senderId: formData.get('senderId'),
+      recipientId: formData.get('recipientId'),
+      image: formData.get('image') ? 'File present' : 'No file'
+    });
+
+    const response = await apiClient.post('/api/messages/private', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    console.log('Private message response:', response.data);
     return response.data;
   } catch (error) {
+    console.error('Error in sendPrivateMessage:', error);
     throw error.response ? error.response.data : error.message;
   }
 };
-
 export const getUserDataPublic = async (userId) => {
   try {
     const response = await apiClient.get(`/api/profile/public`, { params: { userId } });

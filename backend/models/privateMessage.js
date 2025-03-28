@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const privateMessageSchema = new mongoose.Schema({
-    text: { type: String, required: true },
+    text: { type: String },
     image: { type: String },
     senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     senderUsername: { type: String},

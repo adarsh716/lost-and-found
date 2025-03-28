@@ -11,161 +11,167 @@ import {
   Paper,
   Typography,
   Box,
-  // Badge
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
-import ArrowBack from "@mui/icons-material/ArrowBack";
-import { styled } from "@mui/material/styles";
+import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
-import { AccountCircle } from "@mui/icons-material";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { styled } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getPrivateMessages, sendPrivateMessage } from "../../api/auth";
 
 const PrivateChat = () => {
+  const navigate = useNavigate();
   const [message, setMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [userSearchQuery, setUserSearchQuery] = useState("");
-  const fileInputRef = useRef(null);
+  const [messages, setMessages] = useState({});
+  const [selectedUser, setSelectedUser] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [selectedUser, setSelectedUser] = useState("");
-  const [currentUser] = useState({
-    id: 0,
-    fullName: "Alice Smith",
-    avatar: "AS",
-  });
-  const [selectedProfile, setSelectedProfile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const fileInputRef = useRef(null);
+  const messagesEndRef = useRef(null);
+  const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
 
   const { user } = useAuth();
 
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: "Adarsh Lakhanpal",
-      avatar: "A",
-      online: true,
-      lastMessage: "At our office 3 ppl are infected...",
-      timestamp: "MAR 13:35",
-    },
-    {
-      id: 2,
-      name: "John Doe",
-      avatar: "J",
-      online: false,
-      lastMessage: "Hey, how are you?",
-      timestamp: "MAR 12:30",
-    },
-    {
-      id: 3,
-      name: "Jane Smith",
-      avatar: "J",
-      online: true,
-      lastMessage: "See you tomorrow!",
-      timestamp: "MAR 11:15",
-    },
-  ]);
-
-  const [messages, setMessages] = useState([]);
-
-  const navigate = useNavigate();
-
-  const handleDeleteChat = (userId) => {
-    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
-    setMessages((prevMessages) => {
-      const updatedMessages = { ...prevMessages };
-      delete updatedMessages[userId];
-      return updatedMessages;
-    });
-    if (selectedUser === userId) {
-      setSelectedUser(null);
-    }
-  };
-
-  const filteredMessages = (messages[selectedUser] || []).filter((msg) => {
-    const matchesSearch = msg.text
-      ?.toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    return searchQuery ? matchesSearch : true;
-  });
-
   useEffect(() => {
-    return () => {
-      Object.values(messages).forEach((userMessages) => {
-        userMessages.forEach((msg) => {
-          if (msg.image) URL.revokeObjectURL(msg.image);
-        });
-      });
+    if (!isUserScrolledUp) scrollToBottom();
+  }, [messages, selectedUser]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      console.error("Please select an image file");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
     };
-  }, [messages]);
-
-  const handleProfileClick = (user) => {
-    setSelectedProfile(user); // Set the selected user's profile to show
-    navigate(`/UserProfile/`); // Navigate to UserProfile page with the user's id
+    reader.readAsDataURL(file);
+    setImageFile(file);
   };
 
-  const handleCloseProfile = () => {
-    setSelectedProfile(null); // Close the profile view
+  const removeImage = () => {
+    setImagePreview(null);
+    setImageFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleImageClick = (imageUrl) => {
-    setSelectedImage(imageUrl);
-  };
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!selectedUser) return;
+    if (!message.trim() && !imageFile) return;
 
-  const handleCloseImage = () => {
-    setSelectedImage(null);
-  };
-
-  const handleSendMessage = async () => {
-    console.log("selected user", selectedUser);
-
-    if (message.trim() && selectedUser) {
-      const newMessage = {
-        text: message,
-        senderId: user?.userId,
-        recipientId: selectedUser,
-      };
-
-      const response = await sendPrivateMessage(newMessage);
+    try {
+      const formData = new FormData();
+      formData.append("text", message.trim());
+      formData.append("senderId", user.userId);
+      formData.append("recipientId", selectedUser);
       
-      console.log(response);
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+
+      const sentMessage = await sendPrivateMessage(formData);
+
+      setMessages(prevMessages => {
+        const userMessages = prevMessages[selectedUser] || [];
+        const updatedMessages = [
+          ...userMessages,
+          {
+            ...sentMessage,
+            isCurrentUser: true,
+            id: sentMessage._id || Date.now()
+          }
+        ];
+        return {
+          ...prevMessages,
+          [selectedUser]: updatedMessages
+        };
+      });
 
       setMessage("");
+      setImagePreview(null);
+      setImageFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      scrollToBottom();
+    } catch (error) {
+      console.error("Error sending message:", error);
     }
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file && selectedUser) {
-      const imageUrl = URL.createObjectURL(file);
-      const newMessage = {
-        id: Date.now(),
-        user: currentUser.fullName,
-        image: imageUrl,
-        timestamp: new Date().toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        isCurrentUser: true,
-      };
-      setMessages((prev) => ({
-        ...prev,
-        [selectedUser]: [...prev[selectedUser], newMessage],
-      }));
-      e.target.value = null;
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!selectedUser) return;
+      try {
+        const fetchedMessages = await getPrivateMessages(selectedUser, user?.userId);
+
+        const normalizedMessages = fetchedMessages.map(msg => ({
+          ...msg,
+          isCurrentUser: msg.senderId === user?.userId,
+          id: msg._id || Date.now()
+        }));
+
+        setMessages(prevMessages => ({
+          ...prevMessages,
+          [selectedUser]: normalizedMessages
+        }));
+      } catch (error) {
+        console.error("Error fetching private messages:", error);
+      }
+    };
+
+    fetchMessages();
+  }, [selectedUser, user?.userId]);
+
+  const handleImageClick = (imageUrl) => setSelectedImage(imageUrl);
+  const handleCloseImage = () => setSelectedImage(null);
+
+  const handleScroll = () => {
+    const list = messagesEndRef.current?.parentElement;
+    if (list) {
+      const isScrolledUp = list.scrollTop + list.clientHeight < list.scrollHeight;
+      setIsUserScrolledUp(isScrolledUp);
     }
   };
+
+  useEffect(() => {
+    const list = messagesEndRef.current?.parentElement;
+    if (list) {
+      list.addEventListener("scroll", handleScroll);
+      return () => list.removeEventListener("scroll", handleScroll);
+    }
+  }, []);
+
+  const filteredMessages = selectedUser
+  ? (messages[selectedUser] || []).filter((msg) => {
+      const searchLower = searchQuery.toLowerCase();
+      // Show all messages when search is empty
+      if (searchLower === '') return true;
+      // Filter messages with matching text when searching
+      return msg.text?.toLowerCase().includes(searchLower);
+    })
+  : [];
+
+const filteredFriends = user?.friends?.filter((friend) => 
+  friend.friendName.toLowerCase().includes(userSearchQuery.toLowerCase())
+) || [];
 
   const StyledMessage = styled(ListItem)(({ theme, iscurrentuser }) => ({
     flexDirection: iscurrentuser ? "row-reverse" : "row",
     alignItems: "flex-start",
     padding: theme.spacing(1),
-    transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    position: "relative",
-    "&:hover .delete-icon": {
-      opacity: 1,
-    },
   }));
 
   const MessageBubble = styled(Paper)(({ theme, iscurrentuser }) => ({
@@ -174,50 +180,12 @@ const PrivateChat = () => {
     backgroundColor: iscurrentuser ? "#000" : "#fff",
     color: iscurrentuser ? "#fff" : "#000",
     borderRadius: iscurrentuser ? "20px 4px 20px 20px" : "4px 20px 20px 20px",
-    boxShadow: iscurrentuser
-      ? "0 4px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.3)"
-      : "0 4px 20px rgba(0, 0, 0, 0.1), 0 0 15px rgba(0, 0, 0, 0.15)",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    position: "relative",
-    cursor: "pointer",
+    boxShadow: iscurrentuser ? "0 4px 20px rgba(0, 0, 0, 0.3)" : "0 4px 20px rgba(0, 0, 0, 0.1)",
   }));
 
-  const handleDeleteMessage = (messageId) => {
-    setMessages((prevMessages) => {
-      const updatedMessages = { ...prevMessages };
-      updatedMessages[selectedUser] = updatedMessages[selectedUser].filter(
-        (msg) => msg.id !== messageId
-      );
-      return updatedMessages;
-    });
-  };
-
-  useEffect(() => {
-    const fetchMessages = async () => {
-      if (!selectedUser) return; 
-      try {
-        const messages = await getPrivateMessages(selectedUser,user?.userId);
-        console.log("hello",messages);
-        setMessages(messages);
-      } catch (error) {
-        console.error("Error fetching private messages:", error);
-      }
-    };
-
-    fetchMessages();
-  }, [selectedUser]); 
-
   return (
-    <Container
-      maxWidth={false}
-      sx={{
-        height: "91.5ddvh",
-        display: "flex",
-        p: 0,
-        bgcolor: "background.default",
-      }}
-    >
-      {JSON.stringify(messages)}
+    <Container maxWidth={false} sx={{ height: "100%", display: "flex",    flexDirection: { xs: "column", sm: "row" }, p: 0 }}>
+      {/* Sidebar with User List */}
       <Box
         sx={{
           width: { xs: selectedUser ? 0 : "100%", sm: 400 },
@@ -235,29 +203,34 @@ const PrivateChat = () => {
             placeholder="Search users..."
             value={userSearchQuery}
             onChange={(e) => setUserSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <SearchIcon sx={{ color: "action.active", mr: 1 }} />
+              ),
+            }}
             sx={{
               "& .MuiOutlinedInput-root": {
                 borderRadius: "20px",
-                backgroundColor: "background.paper",
+                backgroundColor: "rgba(0, 0, 0, 0.05)",
               },
             }}
           />
         </Box>
         <List sx={{ overflowY: "auto", height: "calc(100vh - 200px)" }}>
-          {user?.friends?.map((user) => (
+          {filteredFriends.map((friend) => (
             <ListItem
-              key={user._id}
+              key={friend._id}
               button
-              onClick={() => setSelectedUser(user._id)}
-              selected={selectedUser === user._id}
+              onClick={() => setSelectedUser(friend.friendId)}
+              selected={selectedUser === friend.friendId}
               sx={{
                 "&.Mui-selected": { backgroundColor: "rgba(0, 0, 0, 0.08)" },
                 "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.04)" },
               }}
             >
               <Box sx={{ position: "relative", mr: 2 }}>
-                <Avatar sx={{ bgcolor: "black" }}>{user.avatar}</Avatar>
-                {user.online && (
+                <Avatar sx={{ bgcolor: "black" }}>{friend.avatar}</Avatar>
+                {friend.online && (
                   <Box
                     sx={{
                       position: "absolute",
@@ -274,15 +247,12 @@ const PrivateChat = () => {
               </Box>
               <Box sx={{ flexGrow: 1, overflow: "hidden" }}>
                 <Typography variant="subtitle1" fontWeight="600">
-                  {user.friendName}
+                  {friend.friendName}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" noWrap>
-                  {user.lastMessage}
+                  {friend.lastMessage}
                 </Typography>
               </Box>
-              <Typography variant="caption" color="text.secondary">
-                {user.timestamp}
-              </Typography>
             </ListItem>
           ))}
         </List>
@@ -299,200 +269,152 @@ const PrivateChat = () => {
       >
         {selectedUser ? (
           <>
-            <Box
-              sx={{
-                p: 2,
-                bgcolor: "background.paper",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                borderBottom: "1px solid #ddd",
+            {/* Chat Header */}
+            <Box 
+              sx={{ 
+                p: 2, 
+                bgcolor: "background.paper", 
+                borderBottom: "1px solid #ddd", 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "space-between" 
               }}
             >
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleProfileClick();
-                  }}
-                  sx={{ ml: 1 }}
-                >
-                  <AccountCircle
-                    sx={{ mr: 1, color: "text.primary", height: 30, width: 30 }}
-                  />
-
-                  <Typography
-                    variant="h6"
-                    sx={{ fontWeight: 600, color: "text.primary" }}
-                  >
-                    {
-                      user?.friends?.find((u) => u._id === selectedUser)
-                        ?.friendName
-                    }
-                  </Typography>
-                </IconButton>
-              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                {user?.friends?.find((f) => f.friendId === selectedUser)?.friendName}
+              </Typography>
               <TextField
                 variant="outlined"
                 placeholder="Search messages..."
-                size="small"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                size="small"
+                InputProps={{
+                  startAdornment: (
+                    <SearchIcon sx={{ color: "action.active", mr: 1 }} />
+                  ),
+                }}
                 sx={{
-                  width: 240,
+                  width: { xs: "100%", sm: "300px" },
                   "& .MuiOutlinedInput-root": {
                     borderRadius: "20px",
-                    backgroundColor: "background.paper",
+                    backgroundColor: "rgba(0, 0, 0, 0.05)",
                   },
                 }}
               />
             </Box>
 
-            <List
-              sx={{
-                flexGrow: 1,
-                overflowY: "auto",
-                bgcolor: "background.default",
-                "&::-webkit-scrollbar": { width: "6px" },
-                "&::-webkit-scrollbar-track": { background: "#f0f0f0" },
-                "&::-webkit-scrollbar-thumb": { background: "#888" },
-              }}
-            >
-              {filteredMessages.map((msg) => {
-                const isCurrentUser = msg.isCurrentUser;
-
-                return (
-                  <StyledMessage
-                    key={msg.id}
-                    iscurrentuser={isCurrentUser ? 1 : 0}
-                  >
-                    <MessageBubble
-                      iscurrentuser={isCurrentUser ? 1 : 0}
-                      sx={{
-                        position: "relative",
-                        "&:hover .delete-button": {
-                          opacity: 1,
-                        },
+            <List sx={{ flexGrow: 1, overflowY: "auto" }}>
+              {filteredMessages.map((msg) => (
+                
+                <StyledMessage 
+                  key={msg.id} 
+                  iscurrentuser={msg.isCurrentUser ? 1 : 0}
+                >
+                  <MessageBubble iscurrentuser={msg.isCurrentUser ? 1 : 0}>
+                    {msg.image && (
+                      <img
+                        src={msg.image}
+                        alt="Uploaded content"
+                        style={{ 
+                          maxWidth: "100%", 
+                          maxHeight: "40vh", 
+                          borderRadius: "12px", 
+                          cursor: "pointer" 
+                        }}
+                        onClick={() => handleImageClick(msg.image)}
+                      />
+                    )}
+                    {msg.text && <Typography variant="body1">{msg.text}</Typography>}
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        display: "block", 
+                        textAlign: "right", 
+                        mt: 0.5 
                       }}
                     >
-                      {!isCurrentUser && (
-                        <Typography
-                          variant="subtitle2"
-                          sx={{ fontWeight: 600, mb: 0.5 }}
-                        >
-                          {msg.user}
-                        </Typography>
-                      )}
-                      {msg.text && (
-                        <Typography variant="body1">{msg.text}</Typography>
-                      )}
-                      {msg.image && (
-                        <img
-                          src={msg.image}
-                          alt="Uploaded content"
-                          style={{
-                            maxWidth: "100%",
-                            maxHeight: "40vh",
-                            borderRadius: "12px",
-                            marginTop: msg.text ? "8px" : 0,
-                            cursor: "pointer",
-                          }}
-                          onClick={() => handleImageClick(msg.image)}
-                        />
-                      )}
-
-                      <IconButton
-                        sx={{
-                          position: "absolute",
-                          top: 4,
-                          right: 4,
-                          backgroundColor: "rgba(0, 0, 0, 0.5)",
-                          color: "#fff",
-                          opacity: 0,
-                          transition: "opacity 0.2s ease-in-out",
-                          "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.7)" },
-                        }}
-                        onClick={() => handleDeleteMessage(msg.id)}
-                        className="delete-button"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </MessageBubble>
-                  </StyledMessage>
-                );
-              })}
+                      {new Date(msg.createdAt).toLocaleTimeString("en-US", { 
+                        hour: "2-digit", 
+                        minute: "2-digit" 
+                      })}
+                    </Typography>
+                  </MessageBubble>
+                </StyledMessage>
+              ))}
+              <div ref={messagesEndRef} />
             </List>
 
-            <Box
-              sx={{
-                p: 2,
-                bgcolor: "#000",
-                boxShadow: "0 -8px 32px rgba(0, 0, 0, 0.3)",
-                borderTop: "1px solid rgba(255,255,255,0.1)",
-              }}
-            >
-              <input
-                type="file"
-                accept="image/*"
-                ref={fileInputRef}
-                style={{ display: "none" }}
-                onChange={handleImageUpload}
-              />
-              <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
-                <IconButton
-                  sx={{
-                    color: "#fff",
-                    "&:hover": { bgcolor: "rgba(255,255,255,0.15)" },
-                  }}
-                  onClick={() => fileInputRef.current.click()}
-                >
-                  <AddPhotoAlternateIcon fontSize="medium" />
-                </IconButton>
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Write a message..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "16px",
-                      backgroundColor: "rgba(255,255,255,0.12)",
-                      color: "#fff",
-                      "& fieldset": { borderColor: "rgba(255,255,255,0.3)" },
-                      "&:hover fieldset": {
-                        borderColor: "rgba(255,255,255,0.6)",
-                      },
-                      "&.Mui-focused fieldset": { borderColor: "#fff" },
-                    },
-                  }}
+            {/* Message Input Area */}
+            <Box sx={{ p: 2, bgcolor: "#000", position: "sticky", bottom: 0 }}>
+              {imagePreview && (
+                <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box sx={{ position: "relative" }}>
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      style={{ 
+                        width: 80, 
+                        height: 80, 
+                        objectFit: "cover", 
+                        borderRadius: 8 
+                      }} 
+                    />
+                    <IconButton
+                      onClick={removeImage}
+                      sx={{ 
+                        position: "absolute", 
+                        top: -8, 
+                        right: -8, 
+                        bgcolor: "rgba(0,0,0,0.5)", 
+                        color: "white" 
+                      }}
+                      size="small"
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                </Box>
+              )}
+
+              <form onSubmit={handleSendMessage}>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  ref={fileInputRef} 
+                  style={{ display: "none" }} 
+                  onChange={handleImageChange} 
                 />
-                <IconButton
-                  onClick={handleSendMessage}
-                  disabled={!message.trim()}
-                  sx={{
-                    bgcolor: "#fff",
-                    color: "#000",
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                    "&:hover": {
-                      bgcolor: "#fff",
-                      transform: "scale(1.15) rotate(-8deg)",
-                      boxShadow: "0 0 24px rgba(255,255,255,0.6)",
-                    },
-                    "&:disabled": {
-                      bgcolor: "rgba(255,255,255,0.2)",
-                      color: "white",
-                      transform: "scale(0.9)",
-                    },
-                    p: 1.5,
-                    borderRadius: "16px",
-                    boxShadow: "0 4px 16px rgba(255,255,255,0.3)",
-                  }}
-                >
-                  <SendIcon fontSize="medium" />
-                </IconButton>
-              </Box>
+                <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    placeholder="Write a message..."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    sx={{ 
+                      "& .MuiOutlinedInput-root": { 
+                        borderRadius: "16px", 
+                        bgcolor: "rgba(255,255,255,0.12)", 
+                        color: "#fff" 
+                      } 
+                    }}
+                  />
+                  <IconButton 
+                    onClick={() => fileInputRef.current?.click()} 
+                    sx={{ color: "#fff" }}
+                  >
+                    <AddPhotoAlternateIcon />
+                  </IconButton>
+                  <IconButton 
+                    type="submit" 
+                    disabled={!message.trim() && !imageFile} 
+                    sx={{ bgcolor: "#fff", color: "#000" }}
+                  >
+                    <SendIcon />
+                  </IconButton>
+                </Box>
+              </form>
             </Box>
           </>
         ) : (
@@ -511,11 +433,15 @@ const PrivateChat = () => {
         )}
       </Box>
 
+      {/* Image Backdrop */}
       <Backdrop
         sx={{
           zIndex: 1300,
-          background: "rgba(0, 0, 0, 0.9)",
+          backgroundColor: "rgba(0, 0, 0, 0.8)",
           backdropFilter: "blur(8px)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
         }}
         open={!!selectedImage}
         onClick={handleCloseImage}
@@ -526,33 +452,35 @@ const PrivateChat = () => {
               position: "relative",
               maxWidth: "90vw",
               maxHeight: "90vh",
+              borderRadius: "12px",
+              overflow: "hidden",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
             }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <IconButton
-              sx={{
-                position: "absolute",
-                top: 16,
-                right: 16,
-                color: "white",
-                background: "rgba(0, 0, 0, 0.5)",
-                "&:hover": {
-                  background: "rgba(255, 255, 255, 0.2)",
-                },
-              }}
-              onClick={handleCloseImage}
-            >
-              <CloseIcon />
-            </IconButton>
             <img
               src={selectedImage}
-              alt="Fullscreen content"
+              alt="Fullscreen view"
               style={{
                 maxWidth: "100%",
                 maxHeight: "90vh",
-                borderRadius: "8px",
-                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
+                objectFit: "contain",
+                borderRadius: "12px",
               }}
             />
+            <IconButton
+              onClick={handleCloseImage}
+              sx={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                color: "white",
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.7)" },
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
           </Box>
         </Fade>
       </Backdrop>
