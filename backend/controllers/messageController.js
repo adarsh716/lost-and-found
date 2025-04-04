@@ -1,5 +1,4 @@
 const Message = require("../models/Message");
-const PrivateMessage = require("../models/PrivateMessage");
 const cloudinary = require('cloudinary').v2;
 
 exports.createCommunityMessage = async (req, res) => {

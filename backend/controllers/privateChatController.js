@@ -1,4 +1,4 @@
-const PrivateMessage = require("../models/PrivateMessage");
+const PrivateMessage = require("../models/privateMessage");
 const mongoose = require("mongoose");
 const cloudinary = require('cloudinary').v2;
 
