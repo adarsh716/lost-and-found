@@ -77,7 +77,7 @@ const Login = () => {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            Lost & Found Portal
+            Web Reclaim Portal
           </Typography>
 
           <Typography
@@ -86,7 +86,7 @@ const Login = () => {
             gutterBottom
             sx={{ color: '#333', mb: { xs: 3, sm: 4 }, fontSize: { xs: '1rem', sm: '1.2rem' } }}
           >
-            Login to track or report lost items!
+            Login to report lost items!
           </Typography>
 
           <Box
@@ -184,7 +184,7 @@ const Login = () => {
 
           <Box mt={4} textAlign="center">
             <Typography variant="body2" sx={{ color: '#555', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-              New to Lost & Found?{' '}
+              New to Web Reclaim?{' '}
               <Link href="/register" underline="none" sx={{ color: '#000', fontWeight: 'bold' }}>
                 Register
               </Link>

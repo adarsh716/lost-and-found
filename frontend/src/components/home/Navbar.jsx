@@ -47,7 +47,7 @@ const Navbar = () => {
             letterSpacing: '1px', 
           }}
         >
-          Lost & Found
+          Web Reclaim
         </Typography>
 
         <IconButton

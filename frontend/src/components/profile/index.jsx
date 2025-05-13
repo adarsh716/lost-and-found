@@ -263,7 +263,7 @@ const CommunityProfile = () => {
                     <LocationOn sx={{ color: 'common.black' }} />
                   </ListItemIcon>
                   <ListItemText
-                    primary="Main Office"
+                    primary="Address"
                     secondary={originalData.address}
                     sx={{ color: 'text.secondary' }}
                   />
@@ -338,7 +338,7 @@ const CommunityProfile = () => {
           <TextField
             fullWidth
             margin="dense"
-            label="Main Office"
+            label="Address"
             value={editData.address}
             onChange={(e) => setEditData({ ...editData, address: e.target.value })}
             required

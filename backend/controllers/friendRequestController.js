@@ -53,12 +53,37 @@ exports.getFriendRequests = async (req, res) => {
       .populate('sender', 'fullName email')
       .select('message status')
       .sort({ createdAt: -1 });
-
     res.status(200).json({ friendRequests });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+exports.getFriendRequestStatusById = async (req, res) => {
+  try {
+    const { senderId, userId } = req.query;
+
+    console.log(senderId)
+    console.log(userId)
+
+    if (!senderId || !userId) {
+      return res.status(400).json({ message: 'SenderId and UserId are required' });
+    }
+
+    const friendRequest = await FriendRequest.findOne({
+      sender: senderId,
+      receiver: userId,
+    })
+      .populate('sender', 'fullName email')
+      .select('message status')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ friendRequest });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 
 
 exports.acceptFriendRequest = async (req, res) => {

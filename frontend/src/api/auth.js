@@ -159,6 +159,17 @@ export const getFriendRequests = async (userId) => {
   }
 };
 
+export const getFriendRequestStatus = async (senderId,userId) => {
+  try {
+    console.log('Sender ID:', senderId);
+    console.log('User ID:', userId);
+    const response = await apiClient.get(`/api/friends/getbyid`,{params :{ senderId,userId}});
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
 export const acceptFriendRequest = async (requestId, userId) => {
   try {
     const response = await apiClient.put('/api/friends/accept', {

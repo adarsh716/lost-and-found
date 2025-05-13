@@ -65,7 +65,7 @@ const Register = () => {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            Lost & Found Portal
+            Web Reclaim Portal
           </Typography>
 
           <Typography
